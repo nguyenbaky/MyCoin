@@ -1,6 +1,7 @@
-import * as CryptoJS from 'crypto-js';
-import { processTransactions, Transaction, UnspentTxOut} from './transaction';
-import {updateTransactionPool,addToTransactionPool} from './transactionPool'
+const CryptoJS = require('crypto-js')
+const transaction = require('./transaction');
+const transactionPool = require('./transactionPool')
+const wallet = require('./wallet')
 
 class Block{
     constructor(index,previousHash,timestamp,transactions,hash,difficulty,nonce){
@@ -14,23 +15,28 @@ class Block{
     }
 }
 
-const genesisTransaction = {
+const genesisTransaction = [{
     addressFrom: 'admin',
     addressTo: '0x04a25215daa87f58b1369fadd316e03b3b074c5e3cc05d74739b0e3149ee7a46a9bc046b7829bf29a822e459364d7722f8f6c54fd3f9cedb554b423f41494a6352',
     amount: 50,
     reward: 0
-}
+},{
+    addressFrom: 'admin',
+    addressTo: '0x04a25215daa87f58b1369fadd316e03b3b074c5e3cc05d74739b0e3149ee7a46a9bc046b7829bf29a822e459364d7722f8f6c54fd3f9cedb554b423f41494a6352',
+    amount: 30,
+    reward: 0
+}]
 
 const genesisBlock = new Block(
-    0, '91a73664bc84c0baa1fc75ea6e4aa6d1d20c5df664c724e3159aefc2e1186627', '', 1465154705, [genesisTransaction], 0, 0
+    0,'',1465154705,genesisTransaction ,'91a73664bc84c0baa1fc75ea6e4aa6d1d20c5df664c724e3159aefc2e1186627', 0, 0
 );
 
 let blockchain = [genesisBlock]
-let unspentTxOuts = processTransactions(blockchain[0].transactions, [], 0);
+let unspentTxOuts = transaction.processTransactions(blockchain[0].transactions, [], 0);
 const getLatestBlock = () => blockchain[blockchain.length - 1];
 
 const getBlockchain = () => blockchain;
-const getUnspentTxOuts = () => _.cloneDeep(unspentTxOuts);
+const getUnspentTxOuts = () => unspentTxOuts;
 
 const calculateHash = (index, previousHash, timestamp, transactions,difficulty, nonce) => CryptoJS.SHA256(index + previousHash + timestamp + transactions + difficulty + nonce).toString();
 const calculateHashForBlock = (block) => calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.difficulty, block.nonce);
@@ -59,11 +65,13 @@ const generateNextBlock = (transaction,miner) => {
     const difficulty = getDifficulty(getBlockchain());
     const nextIndex = previousBlock.index + 1;
     const nextTimestamp = getCurrentTimestamp();
-    const newBlock = findBlock(nextIndex, previousBlock.hash, nextTimestamp, transaction, difficulty);
+    const newBlock = findBlock(nextIndex, previousBlock.hash, nextTimestamp, transactions, difficulty);
     if (addBlockToChain(newBlock)) {
         // add reward for miner to unspentTxOuts
-        let rewardForMiner = new UnspentTxOut(transaction.addressFrom,miner,transaction.reward)
+        let rewardForMiner = new UnspentTxOut(transaction.addressFrom,miner,transactions[0].reward)
         unspentTxOuts.push(rewardForMiner)
+        // update transaction pool
+        transactions.map(tx => transactionPool.updateTransactionPool(tx))
         return newBlock;
     } else {
         return null;
@@ -145,30 +153,29 @@ const isValidNewBlock = (newBlock, previousBlock) => {
 
 
 const getAccountBalance = (address) => {
+    const u = getUnspentTxOuts()
     return getBalance(address, getUnspentTxOuts());
 };
 
 const getBalance = (address,unspentTxOuts) => {
     const balance = findUnspentTxOuts(address,unspentTxOuts)
                     .map(uTxo => uTxo.amount)
-                    .sum()
-    const reward = 1
-    return balance + reward
+                    .reduce((a,b) => a+b,0)
+    return balance 
 }
 
 // 
 const findUnspentTxOuts = (ownerAddress, unspentTxOuts) => {
-    return _.filter(unspentTxOuts, (uTxO) => uTxO.addressTo === ownerAddress);
+    return unspentTxOuts.filter((uTxO) => uTxO.addressTo === ownerAddress);
 };
 
 // create 3 transaction pool from transaction
 const sendTransaction = (addressFrom,addressTo, amount,reward) => {
-    const tx= createTransaction(addressFrom, addressTo, amount, reward);
-    addToTransactionPool(tx);
-    broadCastTransactionPool();
+    const tx= wallet.createTransaction(addressFrom, addressTo, amount, reward);
+    transactionPool.addToTransactionPool(tx);
     return tx;
 };
 
-export {
-    Block,getBlockchain,getUnspentTxOuts,getLatestBlock,generateNextBlock,sendTransaction
+module.exports ={
+    Block,getLatestBlock,getUnspentTxOuts,addBlockToChain,getAccountBalance,getBlockchain,sendTransaction,generateNextBlock
 }

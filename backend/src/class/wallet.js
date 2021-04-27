@@ -1,16 +1,17 @@
-import {getAccountBalance} from './blockchain'
-import {Transaction} from './transaction'
+const blockchain = require('./blockchain')
+const transaction = require('./transaction')
 
 class Wallet {
-    constructor(public,private){
-        this.public = public
-        this.private = private
+    constructor(address,privateKey,publicKey){
+        this.address= address;
+        this.privateKey = privateKey;
+        this.publicKey = publicKey
     }
 
 }
 
 const findTxOutsForAmount = (addressFrom, amount, reward) => {
-    let currentAmount = getAccountBalance(addressFrom);    
+    let currentAmount = blockchain.getAccountBalance(addressFrom);    
     if( currentAmount >= amount + reward )
         return currentAmount - amount - reward
     const eMsg = 'Cannot create transaction , not enough balance' 
@@ -24,11 +25,11 @@ const createTransaction = (addressFrom,addressTo, amount,reward) => {
     if (leftOverAmount === 0) {
         return [txOut1];
     } else {
-        const leftOverTx = new Transaction(addressFrom,addressFrom, leftOverAmount);
+        const leftOverTx = new Transaction(addressFrom,addressFrom, leftOverAmount,0);
         return [txOut1, leftOverTx];
     };
 };
 
-export {
+module.exports= {
     Wallet,findTxOutsForAmount,createTransaction
 }

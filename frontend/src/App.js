@@ -14,7 +14,7 @@ message.config({
 const App = props => (
   <Router>
       <Switch>
-          <Route exact path='/' component={Login}/>
+          <Route exact path='/' component={Dashboard}/>
           <Route exact path='/dashboard' component={Dashboard}/>
           {/* <PrivateRoute path='/'
                         component={Dashboard}/> */}

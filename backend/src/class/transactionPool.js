@@ -1,18 +1,18 @@
 let transactionpool = []
 
 const getTransactionPool = () => {
-    return _.cloneDeep(transactionPool);
+    return transactionpool;
 };
 
 const addToTransactionPool = (tx) => {
     console.log('adding to txPool: %s', JSON.stringify(tx));
-    transactionPool.push(tx);
+    transactionpool.push(tx);
 };
 
 const updateTransactionPool = (tx) => {
-    transactionpool.filter(txP => txP == tx)
+    transactionpool.filter(txP => txP != tx)
 };
 
-export {
+module.exports = {
     getTransactionPool,addToTransactionPool,updateTransactionPool
 }

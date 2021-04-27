@@ -1,5 +1,4 @@
-import * as CryptoJS from 'crypto-js';
-
+const CryptoJS = require('crypto-js')
 class UnspentTxOut {
     constructor(addressFrom, addressTo, amount) {
         this.addressFrom = addressFrom;
@@ -36,17 +35,16 @@ const updateUnspentTxOuts = (aTransactions, aUnspentTxOuts) => {
             return new UnspentTxOut(t.addressFrom, t.addressTo,t.amount );
         })
         .reduce((a, b) => a.concat(b), []);
-
+    
     const consumedTxOuts = aTransactions
         .map((t) => t.addressFrom)
 
     const resultingUnspentTxOuts = aUnspentTxOuts
         .filter(((uTxO) => consumedTxOuts.includes(uTxO.addressFrom) ))
         .concat(newUnspentTxOuts);
-
     return resultingUnspentTxOuts;
 };
 
-export {
+module.exports = {
     processTransactions,Transaction,UnspentTxOut
 }

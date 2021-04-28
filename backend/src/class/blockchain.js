@@ -17,19 +17,37 @@ class Block{
 
 const genesisTransaction = [{
     addressFrom: 'admin',
-    addressTo: '0x04a25215daa87f58b1369fadd316e03b3b074c5e3cc05d74739b0e3149ee7a46a9bc046b7829bf29a822e459364d7722f8f6c54fd3f9cedb554b423f41494a6352',
+    addressTo: '0x6AAc7F545312d4202d72DAeA39daCF3f05aC3223',
     amount: 50,
     reward: 0
 },{
     addressFrom: 'admin',
-    addressTo: '0x04a25215daa87f58b1369fadd316e03b3b074c5e3cc05d74739b0e3149ee7a46a9bc046b7829bf29a822e459364d7722f8f6c54fd3f9cedb554b423f41494a6352',
+    addressTo: '0x6AAc7F545312d4202d72DAeA39daCF3f05aC3223',
     amount: 30,
     reward: 0
 }]
 
-const genesisBlock = new Block(
-    0,'',1465154705,genesisTransaction ,'91a73664bc84c0baa1fc75ea6e4aa6d1d20c5df664c724e3159aefc2e1186627', 0, 0
-);
+const calculateHash = (index, previousHash, timestamp, transactions,difficulty, nonce) => CryptoJS.SHA256(index + previousHash + timestamp + transactions + difficulty + nonce).toString();
+const calculateHashForBlock = (block) => calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.difficulty, block.nonce);
+const hashMatchesDifficulty = (hash, difficulty) => {
+    // const hashInBinary = hexToBinary(hash);
+    const requiredPrefix = '0'.repeat(difficulty);
+    // return hashInBinary.startsWith(requiredPrefix);
+    return hash.startsWith(requiredPrefix)
+};
+
+const findBlock = (index, previousHash, timestamp, transactions, difficulty) => {
+    let nonce = 0;
+    while (true) {
+        const hash = calculateHash(index, previousHash, timestamp.getTime(), transactions, difficulty, nonce);
+        if (hashMatchesDifficulty(hash, difficulty)) {
+            return new Block(index, previousHash, timestamp, transactions,hash , difficulty, nonce);
+        }
+        nonce++;
+    }
+};
+
+const genesisBlock = findBlock(0,'',new Date(),genesisTransaction,1)
 
 let blockchain = [genesisBlock]
 let unspentTxOuts = transaction.processTransactions(blockchain[0].transactions, [], 0);
@@ -38,45 +56,52 @@ const getLatestBlock = () => blockchain[blockchain.length - 1];
 const getBlockchain = () => blockchain;
 const getUnspentTxOuts = () => unspentTxOuts;
 
-const calculateHash = (index, previousHash, timestamp, transactions,difficulty, nonce) => CryptoJS.SHA256(index + previousHash + timestamp + transactions + difficulty + nonce).toString();
-const calculateHashForBlock = (block) => calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.difficulty, block.nonce);
-
-const findBlock = (index, previousHash, timestamp, transactions, difficulty) => {
-    let nonce = 0;
-    while (true) {
-        const hash = calculateHash(index, previousHash, timestamp, transactions, difficulty, nonce);
-        if (hashMatchesDifficulty(hash, difficulty)) {
-            return new Block(index, hash, previousHash, timestamp, transactions, difficulty, nonce);
-        }
-        nonce++;
-    }
-};
-
-const hashMatchesDifficulty = (hash, difficulty) => {
-    const hashInBinary = hexToBinary(hash);
-    const requiredPrefix = '0'.repeat(difficulty);
-    return hashInBinary.startsWith(requiredPrefix);
-};
-
 const getCurrentTimestamp = () => Math.round(new Date().getTime() / 1000);
 
 const generateNextBlock = (transaction,miner) => {
     const previousBlock = getLatestBlock();
     const difficulty = getDifficulty(getBlockchain());
     const nextIndex = previousBlock.index + 1;
-    const nextTimestamp = getCurrentTimestamp();
+    const nextTimestamp = new Date();
     const newBlock = findBlock(nextIndex, previousBlock.hash, nextTimestamp, transactions, difficulty);
     if (addBlockToChain(newBlock)) {
-        // add reward for miner to unspentTxOuts
-        let rewardForMiner = new UnspentTxOut(transaction.addressFrom,miner,transactions[0].reward)
-        unspentTxOuts.push(rewardForMiner)
-        // update transaction pool
-        transactions.map(tx => transactionPool.updateTransactionPool(tx))
+        for(const transaction in transactions){
+            // add reward for miner to unspentTxOuts
+            let rewardForMiner = new UnspentTxOut(transaction.addressFrom,miner,transaction.reward)
+            unspentTxOuts.push(rewardForMiner)
+            // update transaction pool
+            transactionPool.updateTransactionPool(transaction)
+        }
         return newBlock;
     } else {
         return null;
     }
 
+};
+
+const DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
+const BLOCK_GENERATION_INTERVAL = 1;
+
+const getDifficulty = (aBlockchain) => {
+    const latestBlock = aBlockchain[blockchain.length - 1];
+    if (latestBlock.index % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 && latestBlock.index !== 0) {
+        return getAdjustedDifficulty(latestBlock, aBlockchain);
+    } else {
+        return latestBlock.difficulty;
+    }
+};
+
+const getAdjustedDifficulty = (latestBlock, aBlockchain) => {
+    const prevAdjustmentBlock = aBlockchain[blockchain.length - DIFFICULTY_ADJUSTMENT_INTERVAL];
+    const timeExpected = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;
+    const timeTaken = latestBlock.timestamp - prevAdjustmentBlock.timestamp;
+    if (timeTaken < timeExpected / 2) {
+        return prevAdjustmentBlock.difficulty + 1;
+    } else if (timeTaken > timeExpected * 2) {
+        return prevAdjustmentBlock.difficulty - 1;
+    } else {
+        return prevAdjustmentBlock.difficulty;
+    }
 };
 
 const addBlockToChain = (newBlock) => {

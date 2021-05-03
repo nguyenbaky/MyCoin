@@ -51,10 +51,13 @@ const genesisBlock = findBlock(0,'',new Date(),genesisTransaction,1)
 
 let blockchain = [genesisBlock]
 let unspentTxOuts = transaction.processTransactions(blockchain[0].transactions, [], 0);
+let aTransaction = genesisTransaction
+
 const getLatestBlock = () => blockchain[blockchain.length - 1];
 
 const getBlockchain = () => blockchain;
 const getUnspentTxOuts = () => unspentTxOuts;
+const getAllTransaction = () => aTransaction;
 
 const getCurrentTimestamp = () => Math.round(new Date().getTime() / 1000);
 
@@ -178,6 +181,7 @@ const isValidNewBlock = (newBlock, previousBlock) => {
 
 
 const getAccountBalance = (address) => {
+    console.log('123')
     const u = getUnspentTxOuts()
     return getBalance(address, getUnspentTxOuts());
 };
@@ -195,12 +199,15 @@ const findUnspentTxOuts = (ownerAddress, unspentTxOuts) => {
 };
 
 // create 3 transaction pool from transaction
-const sendTransaction = (addressFrom,addressTo, amount,reward) => {
-    const tx= wallet.createTransaction(addressFrom, addressTo, amount, reward);
-    transactionPool.addToTransactionPool(tx);
-    return tx;
+const sendTransaction = (addressFrom,addressTo, amount,reward,currentAmount) => {
+    const nTransaction = [{addressFrom,addressTo,amount,reward}]
+    aTransaction.push(nTransaction)
+    const txs= wallet.createTransaction(addressFrom, addressTo, amount, reward,currentAmount);
+    console.log(txs)
+    txs.forEach(tx => transactionPool.addToTransactionPool(tx))
+    return txs;
 };
 
 module.exports ={
-    Block,getLatestBlock,getUnspentTxOuts,addBlockToChain,getAccountBalance,getBlockchain,sendTransaction,generateNextBlock
+    Block,getLatestBlock,getUnspentTxOuts,addBlockToChain,getAccountBalance,getBlockchain,sendTransaction,generateNextBlock,getAllTransaction
 }

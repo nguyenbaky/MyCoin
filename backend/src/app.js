@@ -3,7 +3,6 @@ const morgan = require('morgan')
 const cors = require('cors')
 
 const Transactionpool = require('./class/transactionPool')
-const Transaction = require('./class/transaction')
 const blockchain =  require('./class/blockchain');
 
 const app = express()
@@ -14,7 +13,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     next();
   });
-// app.use(cors())
+app.use(cors())
 
 //get blockchain
 app.get('/blocks',(req,res)=>{
@@ -27,13 +26,25 @@ app.get('/unspentTransactionOutputs', (req, res) => {
 
 app.get('/balance/:address', (req, res) => {
     const {address} = req.params
-    console.log('address '+ address)
-    // const unspentTxOuts = getUnspentTxOuts()
-    // const balance = unspentTxOuts.find(uTxO => uTxO.addressTo = address).map(uTxO => uTxO.amount).reduce((a,b)=> a+b,0)
     const balance = blockchain.getAccountBalance(address)
     res.send({'balance': balance});
 });
 
+app.get('/history/:address',(req,res)=>{
+    const aTransactions = blockchain.getAllTransaction()
+    const transactionpool = Transactionpool.getTransactionPool()
+    const {address} = req.params
+    // all transaction
+    const result1 = aTransactions.filter(item => {
+        return (item.addressFrom === address ||
+            item.addressTo === address)
+    })
+    // filter transaction in transaction pool
+    const result = result1.filter(item => {
+        return !transactionpool.includes(item) 
+    })
+    res.send(result)
+})
 
 // mine block with transaction in pool
 app.post('/mineBlock', (req, res) => {
@@ -50,10 +61,12 @@ app.post('/mineBlock', (req, res) => {
 app.post('/sendTransaction', (req,res) => {
     try {
         const {addressFrom, addressTo, amount, reward} = req.body
-        if (addressFrom === undefined || amount === undefined || addressTo === undefined || reward === undefined) {
-            throw Error('invalid information');
-        }
-        const resp = blockchain.sendTransaction(addressFrom,addressTo,amount,reward)
+        // if (addressFrom === undefined || amount === undefined || addressTo === undefined || reward === undefined) {
+        //     throw Error('invalid information');
+        // }
+        const currentAmount = blockchain.getAccountBalance(addressFrom) 
+        console.log(currentAmount)
+        const resp = blockchain.sendTransaction(addressFrom,addressTo,amount,reward,currentAmount)
         res.send(resp)
     } catch (e) {
         console.log(e.message);

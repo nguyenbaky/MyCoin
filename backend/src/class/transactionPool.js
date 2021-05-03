@@ -1,9 +1,11 @@
-let transactionpool = [{
-    addressFrom: '0x6AAc7F545312d4202d72DAeA39daCF3f05aC3223',
-    addressTo:'0x6AAc7F545312d4202d72DAeA39daCF3f05aC3223',
-    amount:50,
-    reward:5
-}]
+// let transactionpool = [{
+//     addressFrom: '0x6AAc7F545312d4202d72DAeA39daCF3f05aC3223',
+//     addressTo:'0x6AAc7F545312d4202d72DAeA39daCF3f05aC3223',
+//     amount:50,
+//     reward:5
+// }]
+
+let transactionpool = []
 
 const getTransactionPool = () => {
     return transactionpool;

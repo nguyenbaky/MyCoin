@@ -30,7 +30,6 @@ const validateBlockTransactions = (aTransactions, aUnspentTxOuts, blockIndex) =>
 };
 
 const updateUnspentTxOuts = (aTransactions, aUnspentTxOuts) => {
-    console.log('aaa ' + aTransactions)
     const newUnspentTxOuts = aTransactions
         .map((t) => {
             return new UnspentTxOut(t.addressFrom, t.addressTo,t.amount );

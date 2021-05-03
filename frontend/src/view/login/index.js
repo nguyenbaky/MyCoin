@@ -1,10 +1,19 @@
 import React, {useState} from 'react'
+import { useHistory } from 'react-router-dom';
 
+const ethers = require('ethers');
 const bip39 = require('bip39')
+const Web3 = require('web3')
+const path = "m/44'/60'/0'/0/0"
+
 
 const Login = () => {
+    let history = useHistory()
+    const web3 = new Web3()
     const [mnemonic,setMnemonic] = useState(bip39.generateMnemonic()) 
     const [checkMnemonic,setCheckMnemonic] = useState('')    
+    const [privateKey,setPrivateKey] = useState('')
+    const [mnemonicLogin,setMnemonicLogin] = useState('')
 
     const verifyMnemonic = () => {
         if(mnemonic === checkMnemonic) alert('you have create your wallet')
@@ -22,25 +31,82 @@ const Login = () => {
                 <div className="col-md-4">
                     <h2>Get a New Wallet</h2>
                     <p style={{display:'inline'}}>Already have a wallet? </p>
-                    <a style={{color:'green'}} data-toggle="modal" data-target="#exampleModal"> Access My Wallet</a>
-                    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        {/* modal choose login  */}
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Access By</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <button type="button" class="btn btn-light" style={{width:'100%',margin:'5px'}}>Private key</button><br/>
-                                <button type="button" class="btn btn-light" style={{width:'100%',margin:'5px'}}>Mnemonic Phrases</button>
-                            </div>
+                    <a style={{color:'green'}} data-toggle="modal" data-target="#AccessBy"> Access My Wallet</a>
+
+                    {/* modal choose login  */}
+                    <div class="modal fade" id="AccessBy" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Access By</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <button type="button" class="btn btn-light" data-dismiss='modal' data-toggle='modal' data-target='#PrivateKey' style={{width:'100%',margin:'5px'}}>Private key</button><br/>
+                                    <button type="button" class="btn btn-light" data-dismiss='modal' data-toggle='modal' data-target='#Mnemonic' style={{width:'100%',margin:'5px'}}>Mnemonic Phrases</button>
+                                </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    {/* Mnemonic modal */}
+                    <div class="modal fade " id="Mnemonic" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Mnemonic</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input placeholder='Enter your mnemonic' style={{width:'100%'}} value={mnemonicLogin} onChange={(e)=>setMnemonicLogin(e.target.value)}></input>
+                                    <button className='btn btn-primary' style={{marginTop:'10px'}} onClick={()=>{
+                                        const check = bip39.validateMnemonic(mnemonicLogin)
+                                        if(!check) {
+                                            alert('invalid mnemonic')
+                                            return
+                                        }
+                                        let wallet = ethers.Wallet.fromMnemonic(mnemonicLogin,path)
+                                        history.push({
+                                            pathname:'/dashboard',
+                                            state:{ address : wallet.address, privateKey}
+                                        })
+                                    }}>Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* PrivateKey modal */}
+                    <div class="modal fade" id="PrivateKey" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">PrivateKey</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input placeholder='Enter your private key' style={{width:'100%'}} value={privateKey} onChange={(e) => setPrivateKey(e.target.value)}></input>
+                                    <button className='btn btn-primary' style={{marginTop:'10px'}} onClick={()=>{
+                                        console.log(privateKey)
+                                        try{
+                                            var account = web3.eth.accounts.privateKeyToAccount(privateKey);
+                                            history.push({
+                                                pathname:'/dashboard',
+                                                state:{ address : account.address, privateKey}
+                                            })
+                                        }catch(e){
+                                            alert('Invalid private key')
+                                            return
+                                        } 
+                                    }}>Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                      
                 <div className="col-md-4"></div>
             </div>
             <div className='row' style={{marginTop:'30px',}}>

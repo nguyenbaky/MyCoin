@@ -20,6 +20,8 @@ const updateTransactionPool = (tx) => {
     transactionpool.filter(txP => txP != tx)
 };
 
+const clearTransactionPool = () => transactionpool = []
+
 module.exports = {
-    getTransactionPool,addToTransactionPool,updateTransactionPool
+    getTransactionPool,addToTransactionPool,updateTransactionPool,clearTransactionPool
 }

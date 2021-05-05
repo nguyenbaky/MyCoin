@@ -46,8 +46,23 @@ const Dashboard = (props) => {
 
 
     }
-
     
+    const mineBlock = () => {
+        if(transactionPool.length === 0){
+            alert('No transaction to mine')
+            return
+        }
+
+        axios.post(`${URL}/mineBlock`,{miner : address})
+        .then(response => {
+            console.log(response)
+            fetchBlocks()
+            fetchHistory()
+            fetchBalance()
+            setTransactionPool([])
+        })
+    }
+
     const fetchTransactionPool = () => {
         axios.get(`${URL}/transactionPool`)
         .then(response=>{
@@ -62,10 +77,11 @@ const Dashboard = (props) => {
         })
     }
 
-    const fetchBalacne = () => {
+    const fetchBalance = () => {
         axios.get(`${URL}/balance/${address}`)
         .then(response =>{
             setBalance(response.data.balance)
+            console.log(balance)
         })
     }
 
@@ -83,7 +99,7 @@ const Dashboard = (props) => {
         }
 
         fetchBlocks()
-        fetchBalacne()
+        fetchBalance()
         fetchHistory()
         fetchTransactionPool()
     },[])
@@ -170,6 +186,10 @@ const Dashboard = (props) => {
                                                 <p>{block?.timestamp}</p>
                                                 <h4>Hash</h4>
                                                 <p>{block?.hash}</p>
+                                                <h4>Difficulty</h4>
+                                                <p>{block?.difficulty}</p>
+                                                <h4>Nonce</h4>
+                                                <p>{block?.nonce}</p>
                                             </div>
                                         ))    
                                     }
@@ -196,7 +216,7 @@ const Dashboard = (props) => {
                                 </div>
                                ))
                             }
-                            <button className='btn btn-primary' style={{float:'right'}} >Mine</button>
+                            <button className='btn btn-primary' style={{float:'right'}} onClick={mineBlock}>Mine</button>
                         </div>
                     </div>
                 </div>

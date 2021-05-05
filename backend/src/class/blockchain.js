@@ -28,7 +28,7 @@ const genesisTransaction = [{
 }]
 
 const calculateHash = (index, previousHash, timestamp, transactions,difficulty, nonce) => CryptoJS.SHA256(index + previousHash + timestamp + transactions + difficulty + nonce).toString();
-const calculateHashForBlock = (block) => calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.difficulty, block.nonce);
+const calculateHashForBlock = (block) => calculateHash(block.index, block.previousHash, block.timestamp, block.transactions,block.difficulty , block.nonce);
 const hashMatchesDifficulty = (hash, difficulty) => {
     // const hashInBinary = hexToBinary(hash);
     const requiredPrefix = '0'.repeat(difficulty);
@@ -61,22 +61,25 @@ const getAllTransaction = () => aTransaction;
 
 const getCurrentTimestamp = () => Math.round(new Date().getTime() / 1000);
 
-const generateNextBlock = (transaction,miner) => {
+const generateNextBlock = (transactions,miner) => {
     const previousBlock = getLatestBlock();
     const difficulty = getDifficulty(getBlockchain());
     const nextIndex = previousBlock.index + 1;
     const nextTimestamp = new Date();
     const newBlock = findBlock(nextIndex, previousBlock.hash, nextTimestamp, transactions, difficulty);
     if (addBlockToChain(newBlock)) {
-        for(const transaction in transactions){
+        transactions.forEach(t => {
             // add reward for miner to unspentTxOuts
-            let rewardForMiner = new UnspentTxOut(transaction.addressFrom,miner,transaction.reward)
-            unspentTxOuts.push(rewardForMiner)
+                if(t.reward > 0){
+                    let rewardForMiner = new transaction.UnspentTxOut(t.addressFrom,miner,t.reward)
+                    unspentTxOuts.push(rewardForMiner)
+                }
+            })
             // update transaction pool
-            transactionPool.updateTransactionPool(transaction)
-        }
-        return newBlock;
-    } else {
+            transactionPool.clearTransactionPool()
+            console.log(unspentTxOuts)
+            return newBlock;
+        }else {
         return null;
     }
 
@@ -109,14 +112,14 @@ const getAdjustedDifficulty = (latestBlock, aBlockchain) => {
 
 const addBlockToChain = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
-        const retVal = processTransactions(newBlock.data, getUnspentTxOuts(), newBlock.index);
+        const retVal = transaction.processTransactions(newBlock.transactions, getUnspentTxOuts(), newBlock.index);
         if (retVal === null) {
             console.log('block is not valid in terms of transactions');
             return false;
         } else {
             blockchain.push(newBlock);
             setUnspentTxOuts(retVal);
-            updateTransactionPool(unspentTxOuts);
+            transactionPool.updateTransactionPool(unspentTxOuts);
             return true;
         }
     }
@@ -132,8 +135,7 @@ const isValidBlockStructure = (block) => {
     return typeof block.index === 'number'
         && typeof block.hash === 'string'
         && typeof block.previousHash === 'string'
-        && typeof block.timestamp === 'number'
-        && typeof block.data === 'object';
+        && typeof block.transactions === 'object';
 };
 
 const isValidTimestamp = (newBlock, previousBlock) => {
@@ -143,10 +145,10 @@ const isValidTimestamp = (newBlock, previousBlock) => {
 
 const hasValidHash = (block) => {
 
-    if (!hashMatchesBlockContent(block)) {
-        console.log('invalid hash, got:' + block.hash);
-        return false;
-    }
+    // if (!hashMatchesBlockContent(block)) {
+    //     console.log('invalid hash, got:' + block.hash);
+    //     return false;
+    // }
 
     if (!hashMatchesDifficulty(block.hash, block.difficulty)) {
         console.log('block difficulty not satisfied. Expected: ' + block.difficulty + 'got: ' + block.hash);
@@ -156,10 +158,13 @@ const hasValidHash = (block) => {
 
 const hashMatchesBlockContent = (block) => {
     const blockHash = calculateHashForBlock(block);
+    // console.log(CryptoJS.SHA256(block.index + block.previousHash + block.timestamp + block.transactions +block.difficulty  + block.nonce).toString())
+    // console.log('block hash ' + blockHash)
+    console.log(block)
     return blockHash === block.hash;
 };
 
-const isValidNewBlock = (newBlock, previousBlock) => {
+const isValidNewBlock = (newBlock ,previousBlock) => {
     if (!isValidBlockStructure(newBlock)) {
         console.log('invalid block structure: %s', JSON.stringify(newBlock));
         return false;
@@ -170,9 +175,6 @@ const isValidNewBlock = (newBlock, previousBlock) => {
     } else if (previousBlock.hash !== newBlock.previousHash) {
         console.log('invalid previoushash');
         return false;
-    } else if (!isValidTimestamp(newBlock, previousBlock)) {
-        console.log('invalid timestamp');
-        return false;
     } else if (!hasValidHash(newBlock)) {
         return false;
     }
@@ -181,15 +183,14 @@ const isValidNewBlock = (newBlock, previousBlock) => {
 
 
 const getAccountBalance = (address) => {
-    console.log('123')
     const u = getUnspentTxOuts()
     return getBalance(address, getUnspentTxOuts());
 };
 
 const getBalance = (address,unspentTxOuts) => {
     const balance = findUnspentTxOuts(address,unspentTxOuts)
-                    .map(uTxo => uTxo.amount)
-                    .reduce((a,b) => a+b,0)
+                    .map(uTxo => parseInt(uTxo.amount))
+                    .reduce((a,b) => parseInt(a+b),0)
     return balance 
 }
 
@@ -200,7 +201,7 @@ const findUnspentTxOuts = (ownerAddress, unspentTxOuts) => {
 
 // create 3 transaction pool from transaction
 const sendTransaction = (addressFrom,addressTo, amount,reward,currentAmount) => {
-    const nTransaction = [{addressFrom,addressTo,amount,reward}]
+    const nTransaction = {addressFrom,addressTo,amount,reward}
     aTransaction.push(nTransaction)
     const txs= wallet.createTransaction(addressFrom, addressTo, amount, reward,currentAmount);
     console.log(txs)

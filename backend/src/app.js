@@ -27,6 +27,8 @@ app.get('/unspentTransactionOutputs', (req, res) => {
 app.get('/balance/:address', (req, res) => {
     const {address} = req.params
     const balance = blockchain.getAccountBalance(address)
+    console.log('balance ' + balance)
+    console.log(typeof(balance))
     res.send({'balance': balance});
 });
 
@@ -36,19 +38,20 @@ app.get('/history/:address',(req,res)=>{
     const {address} = req.params
     // all transaction
     const result1 = aTransactions.filter(item => {
-        return (item.addressFrom === address ||
-            item.addressTo === address)
+        return (item.addressFrom === address || item.addressTo === address)
     })
     // filter transaction in transaction pool
     const result = result1.filter(item => {
         return !transactionpool.includes(item) 
     })
+
     res.send(result)
 })
 
 // mine block with transaction in pool
 app.post('/mineBlock', (req, res) => {
-    const {transactions} = req.body
+    const {miner} = req.body
+    const transactions = Transactionpool.getTransactionPool()
     const newBlock = blockchain.generateNextBlock(transactions,miner);
     if (newBlock === null) {
         res.status(400).send('could not generate block');
@@ -65,7 +68,6 @@ app.post('/sendTransaction', (req,res) => {
         //     throw Error('invalid information');
         // }
         const currentAmount = blockchain.getAccountBalance(addressFrom) 
-        console.log(currentAmount)
         const resp = blockchain.sendTransaction(addressFrom,addressTo,amount,reward,currentAmount)
         res.send(resp)
     } catch (e) {

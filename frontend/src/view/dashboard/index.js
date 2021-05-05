@@ -15,6 +15,7 @@ const Dashboard = (props) => {
     const [amount,setAmount] = useState(0)
     const [reciever,setReciever] = useState('')
     const [reward,setReward] = useState(0)
+    const [send,setSend] = useState('Send')
 
     const sendTransaction = () => {
         const check = transactionPool.filter(tx => tx.addressFrom === address)
@@ -34,6 +35,8 @@ const Dashboard = (props) => {
             alert('Not enough balance')
             return
         }
+
+        setSend('Sending ...')
 
         axios.post(`${URL}/sendTransaction`,{
             addressFrom:address,
@@ -60,6 +63,7 @@ const Dashboard = (props) => {
             fetchHistory()
             fetchBalance()
             setTransactionPool([])
+            setSend('Send')
         })
     }
 
@@ -81,7 +85,7 @@ const Dashboard = (props) => {
         axios.get(`${URL}/balance/${address}`)
         .then(response =>{
             setBalance(response.data.balance)
-            console.log(balance)
+            console.log('balance ' + balance)
         })
     }
 
@@ -159,7 +163,7 @@ const Dashboard = (props) => {
                             <input style={{width:'100%' ,textAlign:'right'}} value={amount} onChange={(e) => setAmount(e.target.value)}></input>
                             <p>Reward</p>
                             <input style={{width:'100%' ,textAlign:'right'}} value={reward} onChange={(e) => setReward(e.target.value)}></input><br/>
-                            <button className='btn btn-primary' style={{marginTop:'5px',float:'right'}} onClick={sendTransaction}>Send</button>
+                            <button className='btn btn-primary' style={{marginTop:'5px',float:'right'}} onClick={sendTransaction} >{send}</button>
                         </div>
                     </div>
                 </div>

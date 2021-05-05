@@ -27,8 +27,6 @@ app.get('/unspentTransactionOutputs', (req, res) => {
 app.get('/balance/:address', (req, res) => {
     const {address} = req.params
     const balance = blockchain.getAccountBalance(address)
-    console.log('balance ' + balance)
-    console.log(typeof(balance))
     res.send({'balance': balance});
 });
 

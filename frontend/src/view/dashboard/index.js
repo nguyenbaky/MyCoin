@@ -8,6 +8,7 @@ const Dashboard = (props) => {
 
     let browserHistory = useHistory()
     const [address,setAddress] = useState(props.location.state.address)
+    const [privateKey,setPrivateKey] = useState(props.location.state.privateKey)
     const [transactionPool,setTransactionPool] = useState([])
     const [blockchain,setBlockchain] = useState([])
     const [balance,setBalance] = useState(0)
@@ -101,7 +102,7 @@ const Dashboard = (props) => {
             browserHistory.push({pathname:'/'})
             return
         }
-
+        console.log('private key '+ privateKey)
         fetchBlocks()
         fetchBalance()
         fetchHistory()
@@ -125,7 +126,8 @@ const Dashboard = (props) => {
                                         Balance: {balance}
                                     </h5>
                                     <div style={{textAlign:'center'}}>
-                                        <button className='btn btn-primary' data-toggle='modal' data-target='#History' style={{float:''}}>Show history</button>
+                                        <button className='btn btn-primary' data-toggle='modal' data-target='#History' style={{margin:'10px'}}>Show history</button><br/>
+                                        <button className='btn btn-primary' data-toggle='modal' data-target='#PrivateKey' >Export Key</button>
                                         {/* history modal */}
                                         <div class="modal fade" id="History" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                             <div class="modal-dialog" role="document">
@@ -146,6 +148,22 @@ const Dashboard = (props) => {
                                                 </div>
                                             </div>
                                         </div>
+                                    
+                                         {/* Private key */}
+                                        <div class="modal fade " id="PrivateKey" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="exampleModalLabel">PrivateKey</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        {privateKey}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>   
 
                                 </div>

@@ -70,8 +70,8 @@ const Login = () => {
                                         }
                                         let wallet = ethers.Wallet.fromMnemonic(mnemonicLogin,path)
                                         history.push({
-                                            pathname:'/dashboard',
-                                            state:{ address : wallet.address, privateKey}
+                                            pathname:'/dashboard',   
+                                            state:{ address : wallet.address, privateKey:wallet.privateKey}
                                         })
                                     }}>Submit</button>
                                 </div>

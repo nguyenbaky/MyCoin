@@ -47,7 +47,7 @@ const findBlock = (index, previousHash, timestamp, transactions, difficulty) => 
     }
 };
 
-const genesisBlock = findBlock(0,'',new Date(),genesisTransaction,1)
+const genesisBlock = findBlock(0,'',new Date(),genesisTransaction,4)
 
 let blockchain = [genesisBlock]
 let unspentTxOuts = transaction.processTransactions(blockchain[0].transactions, [], 0);

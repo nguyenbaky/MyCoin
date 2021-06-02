@@ -14,4 +14,7 @@ https://youtu.be/1PWwkIEyEyM
 -----ReactJS App------- 
 > cd MyCoin
 > npm i 
+> cd frontend
+> npm i
+> cd ..
 > npm start

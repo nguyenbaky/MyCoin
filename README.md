@@ -11,6 +11,7 @@ https://youtu.be/1PWwkIEyEyM
 - https://coindemo.io/
 - https://viblo.asia/p/phan-1-tu-tao-ra-mot-cong-nghe-blockchain-cua-rieng-minh-4P856031ZY3
 - https://bitsofco.de/calling-smart-contract-functions-using-web3-js-call-vs-send/
+- https://www.quicknode.com/guides/solidity/how-to-write-an-ethereum-smart-contract-using-solidity
 
 -----ReactJS App------- 
 > cd MyCoin

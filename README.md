@@ -10,6 +10,7 @@ https://youtu.be/1PWwkIEyEyM
 - https://blockchaindemo.io/
 - https://coindemo.io/
 - https://viblo.asia/p/phan-1-tu-tao-ra-mot-cong-nghe-blockchain-cua-rieng-minh-4P856031ZY3
+- https://bitsofco.de/calling-smart-contract-functions-using-web3-js-call-vs-send/
 
 -----ReactJS App------- 
 > cd MyCoin
